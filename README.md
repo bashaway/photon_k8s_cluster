@@ -1,3 +1,5 @@
+![dashboard](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/334782/8c3f1d58-d0cc-9fa0-1e94-2978ff452fef.png)
+
 # Photon OS kubernetes cluster deployment tool
 
 work on ubuntu 20.04
