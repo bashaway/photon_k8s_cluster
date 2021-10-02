@@ -220,10 +220,11 @@ ansible-playbook playbook_k8s_photon_cluster.yml
 ```
 
 
-### reset kubernetes cluster
+### reset/re-clustering kubernetes
 
 ```console
 ansible-playbook playbook_k8s_photon_reset.yml
+ansible-playbook playbook_k8s_photon_cluster.yml
 ```
 
 
@@ -342,9 +343,55 @@ strict-transport-security: max-age=15724800; includeSubDomains
 ```
 
 ## workaround
-re-clustering if ingress page is not accessible.
+Delete pod if ingress page is not accessible.
 
-```console
-ansible-playbook playbook_k8s_photon_reset.yml
-ansible-playbook playbook_k8s_photon_cluster.yml
+```shell-session
+# 504 error
+$ curl -I http://www.example.com/
+HTTP/1.1 504 Gateway Time-out
+Date: Sat, 02 Oct 2021 10:16:21 GMT
+Content-Type: text/html
+Content-Length: 160
+Connection: keep-alive
 ```
+
+
+Nginx pods are placed at pos02/04.
+
+```shell-session
+root@pos01 [ ~ ]# kubectl get pod -n default -o wide
+NAME                               READY   STATUS    RESTARTS   AGE   IP           NODE                NOMINATED NODE   READINESS GATES
+nginx-deployment-db749865c-htsb5   1/1     Running   0          28s   10.244.3.4   pos04.example.com   <none>           <none>
+nginx-deployment-db749865c-kvw8g   1/1     Running   0          27s   10.244.1.4   pos02.example.com   <none>           <none>
+```
+
+
+Delete pods
+
+```shell-session
+root@pos01 [ ~ ]# kubectl delete pod -n default --all
+pod "nginx-deployment-db749865c-htsb5" deleted
+pod "nginx-deployment-db749865c-kvw8g" deleted
+
+root@pos01 [ ~ ]# kubectl get pod -n default -o wide
+NAME                               READY   STATUS    RESTARTS   AGE   IP           NODE                NOMINATED NODE   READINESS GATES
+nginx-deployment-db749865c-sd4bh   1/1     Running   0          1s    10.244.2.7   pos03.example.com   <none>           <none>
+nginx-deployment-db749865c-z7g74   1/1     Running   0          1s    10.244.2.8   pos03.example.com   <none>           <none>
+```
+
+
+Retry accessing
+
+```shell-session
+$ curl -I http://www.example.com/
+HTTP/1.1 200 OK
+Date: Sat, 02 Oct 2021 10:20:28 GMT
+Content-Type: text/html
+Content-Length: 612
+Connection: keep-alive
+Last-Modified: Tue, 14 Apr 2020 14:19:26 GMT
+ETag: "5e95c66e-264"
+Accept-Ranges: bytes
+```
+
+
