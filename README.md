@@ -13,7 +13,7 @@ $ ls ~/.ssh/authorized_keys
 /home/USER/.ssh/authorized_keys
 ```
 
-or `pubkey` variable to specific public key / github username.([setup.sh](esxi_photon_deployer/setup.sh))
+or `pubkey` variable to specific public key / github username.([setup.sh](esxi_photon_deployer/setup.sh#L7-L9))
 
 
 ### install packages
