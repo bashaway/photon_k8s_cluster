@@ -1,0 +1,12 @@
+---
+- name: reset k8s_photon
+  hosts: 
+    - master
+    - worker
+  gather_facts: yes
+  remote_user: root
+  tasks:
+
+    - import_role:
+        name: 00_reset
+      tags: 01_reset

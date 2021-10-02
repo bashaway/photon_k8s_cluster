@@ -1,0 +1,23 @@
+# photon01.example.com : 192.168.0.101
+# photon02.example.com : 192.168.0.102
+# photon03.example.com : 192.168.0.103
+# photon04.example.com : 192.168.0.104
+$num_guests=4
+$host_prefix="photon"
+$domain_name = "example.com"
+$address_prefix = "192.168.0."
+$new_host_address = 101
+
+# default gw : 192.168.0.254
+# DNS server : 192.168.0.254
+$address_gw="192.168.0.254"
+$address_dns="192.168.0.254"
+
+# guest machine specification 
+$cpu=2
+$memory=4096
+
+# ESXi Host parameters
+$port_group="VM Network"
+$datastore="datastore01"
+

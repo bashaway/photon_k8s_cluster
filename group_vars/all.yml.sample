@@ -1,0 +1,22 @@
+# set ingress parameters
+ingress_address: "192.168.0.181-192.168.0.199"
+domain_name: "example.com"
+
+
+##### if needed #####
+
+# set network parameters
+pod_network_cidr: 10.244.0.0/16
+
+# set resource directory name ( playbook temporary files )
+dir_resources: "./photon_k8s"
+
+# https://github.com/containernetworking/plugins/releases/
+VERSION_CNI: "v1.0.1"
+
+# https://github.com/kubernetes-sigs/cri-tools/releases
+VERSION_CRICTL: "v1.22.0"
+
+# https://dl.k8s.io/release/stable.txt
+VERSION_K8S: "v1.22.2"
+

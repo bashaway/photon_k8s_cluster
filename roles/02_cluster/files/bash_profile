@@ -1,0 +1,2 @@
+export PATH="${PATH}:/opt/bin"
+export KUBECONFIG=/etc/kubernetes/admin.conf

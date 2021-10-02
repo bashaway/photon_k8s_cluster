@@ -1,0 +1,31 @@
+- name: execute master only
+  block:
+  - name: kubectl drain
+    shell: kubectl get nodes --no-headers=true | awk '{print $1}' | xargs kubectl drain  --delete-emptydir-data --force --ignore-daemonsets
+    ignore_errors: yes
+    environment:
+      KUBECONFIG: /etc/kubernetes/admin.conf
+  when: ('master' in group_names)
+
+- name: execute worker only
+  block:
+  - shell: kubeadm reset -f
+  - copy: src=ip4save dest=/etc/systemd/scripts/ip4save
+  - systemd: name=iptables state=restarted
+  when: ('master' not in group_names)
+
+- name: execute master only
+  block:
+  - name: kubectl drain
+    shell: kubectl get nodes --no-headers=true | awk '{print $1}' | xargs kubectl delete node
+    ignore_errors: yes
+    environment:
+      KUBECONFIG: /etc/kubernetes/admin.conf
+  - name: kubeadm reset
+    shell: kubeadm reset -f
+    environment:
+      KUBECONFIG: /etc/kubernetes/admin.conf
+  - copy: src=ip4save dest=/etc/systemd/scripts/ip4save
+  - systemd: name=iptables state=restarted
+  when: ('master' in group_names)
+

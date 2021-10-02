@@ -1,0 +1,11 @@
+# {{ ansible_managed }}
+# Begin /etc/hosts (network card version)
+
+::1         ipv6-localhost ipv6-loopback
+127.0.0.1   localhost localhost.localdomain
+127.0.0.1   {{ inventory_hostname_short }} {{ inventory_hostname }}
+# End /etc/hosts (network card version)
+{% for item in play_hosts %}
+{% set short_name = item.split('.') %}
+{{ hostvars[item]['ansible_default_ipv4']['address'] }}  {{ hostvars[item]['inventory_hostname_short'] }} {{ hostvars[item]['inventory_hostname'] }}
+{% endfor %}

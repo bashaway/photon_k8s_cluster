@@ -1,0 +1,47 @@
+# https://github.com/kubernetes/dashboard
+- name: dashboard - deploy
+  shell: kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.3.1/aio/deploy/recommended.yaml ; sleep 10
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+
+
+- name: dashboard - wait for dashboard pods
+  shell: kubectl wait -n kubernetes-dashboard pod --all --for=condition=ready --timeout=60s
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+
+- name: dashboard - check if dashboard pods are up.
+  vars:
+    regex_run: '^Running(\nRunning)*$'
+  shell:  kubectl get pods -n kubernetes-dashboard --no-headers=true | awk '{print $3}'
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  register: pods_status
+  until: pods_status.stdout is search(regex_run)
+  retries: 10
+  delay: 30
+
+
+- name: dashboard - copy config files
+  copy: src={{ item.src }} dest={{ item.dest }}
+  with_items:
+    - { src: 'serviceaccount.yaml',    dest: '{{ dir_resources }}/serviceaccount.yaml' }
+    - { src: 'rbac.yaml',              dest: '{{ dir_resources }}/rbac.yaml' }
+
+- name: dashboard - create service account
+  shell: kubectl apply -f {{ dir_resources }}/serviceaccount.yaml ; sleep 10
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+
+- name: dashboard - create rbac
+  shell: kubectl apply -f {{ dir_resources }}/rbac.yaml ; sleep 10
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+
+
+
+- name: dashboard - get login token
+  shell: kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep admin-user | awk '{print $1}') | grep ^token | awk '{print $2}' > {{ dir_resources }}/dashboard_login_token
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+

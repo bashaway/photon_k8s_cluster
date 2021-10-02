@@ -1,0 +1,151 @@
+- name: create resource directory
+  file: path={{ dir_resources }} state=directory
+
+# package update
+- name: update all packages
+  shell: tdnf upgrade -y 
+
+- name: install packages
+  shell: tdnf install -y tar conntrack ebtables ethtool socat
+
+- name: copy files
+  copy: src={{ item.src }} dest={{ item.dest }}
+  with_items:
+    - { src: 'k8s_modules',  dest: '/etc/modules-load.d/k8s.conf' }
+    - { src: 'k8s_sysctl',   dest: '/etc/sysctl.d/k8s.conf' }
+
+- name: sysct
+  command: sysctl --system
+ 
+# https://kubernetes.io/ja/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
+# https://kubernetes.io/docs/reference/ports-and-protocols/
+# https://github.com/coreos/coreos-kubernetes/blob/master/Documentation/kubernetes-networking.md
+# https://docs.projectcalico.org/getting-started/kubernetes/requirements
+- name: allow ports for kubernetes
+  blockinfile:
+    path: /etc/systemd/scripts/ip4save
+    insertbefore: '^COMMIT$'
+    marker: "# {mark} ANSIBLE MANAGED allow ports for kubernetes"
+    block: |
+      -A INPUT -p tcp --dport 443 -m state --state NEW -j ACCEPT
+      -A INPUT -p tcp --dport 6443 -m state --state NEW -j ACCEPT
+      -A INPUT -p tcp --dport 2379:2380 -m state --state NEW -j ACCEPT
+      -A INPUT -p tcp --dport 10250:10259 -m state --state NEW -j ACCEPT
+      -A INPUT -p tcp --dport 30000:32767 -m state --state NEW -j ACCEPT
+
+- name: allow ports for canal ( flannel and calico ) cni
+  blockinfile:
+    path: /etc/systemd/scripts/ip4save
+    insertbefore: '^COMMIT$'
+    marker: "# {mark} ANSIBLE MANAGED allow ports for canal ( flannel ) cni"
+    block: |
+      -A INPUT -p tcp --dport 179 -m state --state NEW -j ACCEPT
+      -A INPUT -p udp --dport 4789 -j ACCEPT
+      -A INPUT -p tcp --dport 5473 -m state --state NEW -j ACCEPT
+      -A INPUT -p udp --dport 8285 -j ACCEPT
+      -A INPUT -p udp --dport 8472 -j ACCEPT
+      -A INPUT -p tcp --dport 7946 -m state --state NEW -j ACCEPT
+      -A INPUT -p udp --dport 7946 -j ACCEPT
+
+
+#######################################################
+# for Photon OS 4.0 GA only (except Rev1
+#######################################################
+#https://github.com/vmware/photon/issues/1127
+#- name: remove systemd-udev
+#  shell: rpm --noscripts -e systemd-udev minimal
+#- name: install systemd-udev
+#  shell: tdnf install -y systemd-udev minimal
+#https://github.com/vmware/photon/issues/1127
+#######################################################
+
+
+# CNI plugin install
+- stat: path={{ dir_resources }}/VERSION_CNI_{{ VERSION_CNI }}
+  register: check
+
+- block:
+  - file: path={{ dir_resources }}/VERSION_CNI_{{ VERSION_CNI }} state=touch
+
+  - name: bin dir
+    file: path=/opt/cni/bin state=directory
+
+  - name: extract tarball
+    shell: curl -L https://github.com/containernetworking/plugins/releases/download/{{ VERSION_CNI }}/cni-plugins-linux-amd64-{{ VERSION_CNI }}.tgz | tar -C /opt/cni/bin -xz
+
+  when: check.stat.exists == False
+
+
+# cri tools install
+- stat: path={{ dir_resources }}/VERSION_CRICTL_{{ VERSION_CRICTL }}
+  register: check
+
+- block:
+  - file: path={{ dir_resources }}/VERSION_CRICTL_{{ VERSION_CRICTL }} state=touch
+
+  - name: extract tarball
+    shell: curl -L https://github.com/kubernetes-sigs/cri-tools/releases/download/{{ VERSION_CRICTL }}/crictl-{{ VERSION_CRICTL }}-linux-amd64.tar.gz | tar -C /usr/local/bin -xz
+
+  when: check.stat.exists == False
+
+
+# k8s binaries install
+- stat: path={{ dir_resources }}/VERSION_K8S_{{ VERSION_K8S }}
+  register: check
+
+- block:
+  - file: path={{ dir_resources }}/VERSION_K8S_{{ VERSION_K8S }} state=touch
+
+  - name: get k8s binaries
+    get_url: url=https://storage.googleapis.com/kubernetes-release/release/{{ VERSION_K8S }}/bin/linux/amd64/{{ item.target }} force=True dest=/usr/local/bin mode=0755
+    with_items:
+      - { target: kubeadm }
+      - { target: kubelet }
+      - { target: kubectl }
+
+  - name: install kubelet service
+    shell: curl -sSL https://raw.githubusercontent.com/kubernetes/release/master/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service | sed s:/usr/bin:/usr/local/bin:g > /etc/systemd/system/kubelet.service
+
+  - name: create kubelet service dir
+    file: state=directory path=/etc/systemd/system/kubelet.service.d
+
+  - name: install kubeadm service
+    shell: curl -sSL https://raw.githubusercontent.com/kubernetes/release/master/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf | sed s:/usr/bin:/usr/local/bin:g > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+
+  when: check.stat.exists == False
+
+
+# kubelet service
+- name: kubelet config
+  copy: src=kubelet dest=/etc/default/kubelet
+
+- name: start kubelet
+  systemd: name=kubelet state=started enabled=yes 
+
+
+# docker service
+- name: docker config directory
+  file: path=/etc/docker state=directory owner=root group=root mode=0755
+
+- name: docker cgroup change
+  copy: src=daemon.json dest=/etc/docker/daemon.json
+
+- name: start docker
+  systemd: name=docker state=started enabled=yes
+
+
+# system reboot
+- name: wait for reboot
+  block:
+
+  - name: reboot
+    shell: "sleep 2 && reboot"
+    async: 1
+    poll: 0
+
+  - name: wait for stop
+    local_action: wait_for host={{ inventory_hostname }} port=22 state=stopped
+
+  - name: wait for start
+    local_action: wait_for host={{ inventory_hostname }} port=22 state=started
+

@@ -1,0 +1,7 @@
+[master]
+photon01.example.com ansible_python_interpreter=/usr/bin/python3
+
+[worker]
+photon02.example.com ansible_python_interpreter=/usr/bin/python3
+photon03.example.com ansible_python_interpreter=/usr/bin/python3
+photon04.example.com ansible_python_interpreter=/usr/bin/python3

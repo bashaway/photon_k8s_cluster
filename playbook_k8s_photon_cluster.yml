@@ -1,0 +1,44 @@
+---
+- name: setup k8s_photon
+  hosts: 
+    - master
+    - worker
+  gather_facts: yes
+  remote_user: root
+  tasks:
+
+
+    - import_role:
+        name: 01_common
+      tags: 01_common
+
+    - import_role:
+        name: 02_cluster
+      tags: 02_cluster
+
+    - name: execute master only
+      block:
+
+      - import_role:
+          name: 03_metrics-server
+        tags: 03_metrics-server
+
+      - import_role:
+          name: 04_ingress
+        tags: 04_ingress
+
+      - import_role:
+          name: 05_dashboard
+        tags: 05_dashboard
+
+      - import_role:
+          name: 99_sample-ingress
+        tags: 99_sample-ingress
+
+      - import_role:
+          name: 99_dashboard-ingress
+        tags: 99_dashboard-ingress
+
+
+      when: ('master' in group_names)
+

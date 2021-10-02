@@ -1,0 +1,11 @@
+- name: dashboard - ingress - copy config files
+  template: src={{ item.src }} dest={{ item.dest }}
+  with_items:
+    - { src: 'dashboard-ingress.yaml.j2', dest: '{{ dir_resources }}/dashboard-ingress.yaml' }
+
+- name: dashboard - ingress
+  shell: kubectl apply -f {{ dir_resources }}/dashboard-ingress.yaml
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+
+

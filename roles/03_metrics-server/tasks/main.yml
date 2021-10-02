@@ -1,0 +1,45 @@
+
+- name: metrics server - get metrics-server deploy file
+  get_url:
+    url: https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+    dest: "{{ dir_resources }}/metrics-server.yaml"
+
+
+- name: metrics server - replace deploy file
+  blockinfile:
+    dest: "{{ dir_resources }}/metrics-server.yaml"
+    insertbefore: 'image:'
+    marker: "# {mark} ANSIBLE MANAGED metrics-server add args"
+    block: |2
+              - --kubelet-insecure-tls
+
+- name: metrics server - replace deploy file
+  blockinfile:
+    dest: "{{ dir_resources }}/metrics-server.yaml"
+    insertbefore: 'containers:'
+    marker: "# {mark} ANSIBLE MANAGED metrics-server set hostNetwork"
+    block: |2
+            hostNetwork: true
+
+- name: metrics server - deploy
+  shell: kubectl apply -f {{ dir_resources }}/metrics-server.yaml ; sleep 10
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+
+
+- name: metrics server - wait for metrics-server pods
+  shell: kubectl wait -n kube-system pod -l k8s-app=metrics-server --for=condition=ready --timeout=60s
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+
+- name: metrics server - check if metric-server pods are up.
+  vars:
+    regex_run: '^Running(\nRunning)*$'
+  shell:  kubectl get pods -n kube-system --no-headers=true | grep ^metrics-server | awk '{print $3}'
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  register: pods_status
+  until: pods_status.stdout is search(regex_run)
+  retries: 10
+  delay: 30
+
