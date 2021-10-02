@@ -2,11 +2,8 @@
   file: path={{ dir_resources }} state=directory
 
 # package update
-- name: update list
-  shell: tdnf update
-
 - name: upgrade all packages
-  shell: tdnf upgrade -y 
+  shell: tdnf check-update ; tdnf upgrade -y 
 
 - name: install packages
   shell: tdnf install -y tar conntrack ebtables ethtool socat
