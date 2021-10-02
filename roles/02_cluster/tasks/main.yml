@@ -42,8 +42,7 @@
 
 
   - name: canal - deploy
-    #shell: kubectl apply -f https://docs.projectcalico.org/manifests/canal.yaml
-    shell: curl -sSL https://docs.projectcalico.org/manifests/canal.yaml | sed 's:#\ \(-\ name.\ CALICO_IPV4POOL_CIDR\):\1:g' |  sed 's:#\ \(\ \ value. \)\(\"192.168.0.0\/16\"\):\1{{ pod_network_cidr }}:g' | kubectl apply -f -
+    shell: kubectl apply -f https://docs.projectcalico.org/manifests/canal.yaml
     environment:
       KUBECONFIG: /etc/kubernetes/admin.conf
 
