@@ -22,10 +22,11 @@
             hostNetwork: true
 
 - name: metrics server - deploy
-  shell: kubectl apply -f {{ dir_resources }}/metrics-server.yaml ; sleep 10
+  shell: kubectl apply -f {{ dir_resources }}/metrics-server.yaml
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
 
+- pause: seconds=10
 
 - name: metrics server - wait for metrics-server pods
   shell: kubectl wait -n kube-system pod -l k8s-app=metrics-server --for=condition=ready --timeout=60s

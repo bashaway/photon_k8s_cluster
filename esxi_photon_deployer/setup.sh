@@ -19,6 +19,7 @@ command="ssh -l root $address  -o StrictHostKeyChecking=no -o UserKnownHostsFile
 hostname="${hostname}.${domain}"
 
 cmd_pubkey="echo '${pubkey}' > ~/.ssh/authorized_keys "
+cmd_timezone="ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime"
 
 cmd_change_ssh_login_method="sed /etc/ssh/sshd_config -i -e 's/^#PermitRootLogin prohibit-password/PermitRootLogin prohibit-password/'"
 cmd_change_ssh_agent_forward="sed /etc/ssh/sshd_config -i -e 's/^#AllowAgentForwarding yes/AllowAgentForwarding yes/'"
@@ -57,6 +58,9 @@ expect -c "
     expect \"root@photon-machine\"
 
     send \"${cmd_pubkey}\n\"
+    expect \"root@photon-machine\"
+
+    send \"${cmd_timezone}\n\"
     expect \"root@photon-machine\"
 
     send \"${cmd_change_ssh_login_method}\n\"

@@ -2,7 +2,10 @@
   file: path={{ dir_resources }} state=directory
 
 # package update
-- name: update all packages
+- name: update list
+  shell: tdnf update
+
+- name: upgrade all packages
   shell: tdnf upgrade -y 
 
 - name: install packages

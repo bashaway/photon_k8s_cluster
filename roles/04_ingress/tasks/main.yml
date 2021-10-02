@@ -1,13 +1,17 @@
 # https://metallb.universe.tf/installation/
 - name: metallb - configure namespace
-  shell: kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.10.2/manifests/namespace.yaml ; sleep 10
+  shell: kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.10.2/manifests/namespace.yaml
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
 
+- pause: seconds=10
+
 - name: metallb - deploy metallb
-  shell: kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.10.2/manifests/metallb.yaml ; sleep 10
+  shell: kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.10.2/manifests/metallb.yaml
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
+
+- pause: seconds=10
 
 - name: metallb - wait for metallb pods
   shell: kubectl wait -n metallb-system pod -l app=metallb --for=condition=ready     --timeout=60s
@@ -30,23 +34,19 @@
   template: src=metallb-l2config.yaml.j2 dest={{ dir_resources }}/metallb-l2config.yaml
 
 - name: metallb - deploy l2 config
-  shell: kubectl apply -f {{ dir_resources }}/metallb-l2config.yaml ; sleep 10
+  shell: kubectl apply -f {{ dir_resources }}/metallb-l2config.yaml
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
 
+- pause: seconds=10
 
 
 - name: nginx ingress - deploy ingress
-  shell: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.0.2/deploy/static/provider/cloud/deploy.yaml ; sleep 10
+  shell: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.0.2/deploy/static/provider/cloud/deploy.yaml
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
 
-- name: nginx ingress - enable ssl passthrough
-  shell: |
-    kubectl patch deployment -n ingress-nginx ingress-nginx-controller --type='json' -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--enable-ssl-passthrough"}]'
-  environment:
-    KUBECONFIG: /etc/kubernetes/admin.conf
-
+- pause: seconds=10
 - name: nginx ingress - wait for ingress-nginx pods
   shell: kubectl wait -n ingress-nginx pod -l app.kubernetes.io/component=controller --for=condition=ready --timeout=60s
   environment:
@@ -62,6 +62,12 @@
   until: pods_status.stdout is search(regex_run)
   retries: 10
   delay: 30
+
+- name: nginx ingress - enable ssl passthrough
+  shell: |
+    kubectl patch deployment -n ingress-nginx ingress-nginx-controller --type='json' -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--enable-ssl-passthrough"}]'
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
 
 # https://stackoverflow.com/questions/61616203/nginx-ingress-controller-failed-calling-webhook
 - name: nginx ingress - delete webhook from nginx addmission

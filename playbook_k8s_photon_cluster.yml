@@ -7,7 +7,6 @@
   remote_user: root
   tasks:
 
-
     - import_role:
         name: 01_common
       tags: 01_common

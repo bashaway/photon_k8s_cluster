@@ -1,9 +1,10 @@
 # https://github.com/kubernetes/dashboard
 - name: dashboard - deploy
-  shell: kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.3.1/aio/deploy/recommended.yaml ; sleep 10
+  shell: kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.3.1/aio/deploy/recommended.yaml
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
 
+- pause: seconds=10
 
 - name: dashboard - wait for dashboard pods
   shell: kubectl wait -n kubernetes-dashboard pod --all --for=condition=ready --timeout=60s
@@ -29,16 +30,18 @@
     - { src: 'rbac.yaml',              dest: '{{ dir_resources }}/rbac.yaml' }
 
 - name: dashboard - create service account
-  shell: kubectl apply -f {{ dir_resources }}/serviceaccount.yaml ; sleep 10
+  shell: kubectl apply -f {{ dir_resources }}/serviceaccount.yaml
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
+
+- pause: seconds=10
 
 - name: dashboard - create rbac
-  shell: kubectl apply -f {{ dir_resources }}/rbac.yaml ; sleep 10
+  shell: kubectl apply -f {{ dir_resources }}/rbac.yaml
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
 
-
+- pause: seconds=10
 
 - name: dashboard - get login token
   shell: kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep admin-user | awk '{print $1}') | grep ^token | awk '{print $2}' > {{ dir_resources }}/dashboard_login_token
