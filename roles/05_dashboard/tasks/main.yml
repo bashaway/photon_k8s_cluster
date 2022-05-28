@@ -1,6 +1,6 @@
 # https://github.com/kubernetes/dashboard
 - name: dashboard - deploy
-  shell: kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.3.1/aio/deploy/recommended.yaml
+  shell: kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.4.0/aio/deploy/recommended.yaml
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
 

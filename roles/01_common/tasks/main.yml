@@ -47,6 +47,17 @@
       -A INPUT -p tcp --dport 7946 -m state --state NEW -j ACCEPT
       -A INPUT -p udp --dport 7946 -j ACCEPT
 
+- name: allow all traffic ( for debug )
+  blockinfile:
+    path: /etc/systemd/scripts/ip4save
+    insertbefore: '^COMMIT$'
+    marker: "# {mark} ANSIBLE MANAGED allow all traffic ( for debug )"
+    block: |
+      -P INPUT ACCEPT
+      -A INPUT -j ACCEPT
+      -P OUTPUT ACCEPT
+      -A OUTPUT -j ACCEPT
+
 
 #######################################################
 # for Photon OS 4.0 GA only (except Rev1
