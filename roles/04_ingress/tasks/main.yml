@@ -1,20 +1,20 @@
 # https://metallb.universe.tf/installation/
 - name: metallb - configure namespace
-  shell: kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.10.2/manifests/namespace.yaml
+  shell: kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/{{ VERSION_METALLB }}/manifests/namespace.yaml
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
 
 - pause: seconds=10
 
 - name: metallb - deploy metallb
-  shell: kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.10.2/manifests/metallb.yaml
+  shell: kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/{{ VERSION_METALLB }}/manifests/metallb.yaml
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
 
 - pause: seconds=10
 
 - name: metallb - wait for metallb pods
-  shell: kubectl wait -n metallb-system pod -l app=metallb --for=condition=ready     --timeout=60s
+  shell: kubectl wait -n metallb-system pod -l app=metallb --for=condition=ready     --timeout={{ kubectl_timeout }}
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
 
@@ -42,13 +42,14 @@
 
 
 - name: nginx ingress - deploy ingress
-  shell: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.1.0/deploy/static/provider/cloud/deploy.yaml
+  shell: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-{{ VERSION_INGRESS }}/deploy/static/provider/cloud/deploy.yaml
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
 
 - pause: seconds=10
+
 - name: nginx ingress - wait for ingress-nginx pods
-  shell: kubectl wait -n ingress-nginx pod -l app.kubernetes.io/component=controller --for=condition=ready --timeout=60s
+  shell: kubectl wait -n ingress-nginx pod -l app.kubernetes.io/component=controller --for=condition=ready --timeout={{ kubectl_timeout }}
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
 

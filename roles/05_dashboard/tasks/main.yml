@@ -1,13 +1,13 @@
 # https://github.com/kubernetes/dashboard
 - name: dashboard - deploy
-  shell: kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.4.0/aio/deploy/recommended.yaml
+  shell: kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/{{ VERSION_DASHBOARD }}/aio/deploy/recommended.yaml
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
 
 - pause: seconds=10
 
 - name: dashboard - wait for dashboard pods
-  shell: kubectl wait -n kubernetes-dashboard pod --all --for=condition=ready --timeout=60s
+  shell: kubectl wait -n kubernetes-dashboard pod --all --for=condition=ready --timeout={{ kubectl_timeout }}
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
 

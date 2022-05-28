@@ -1,7 +1,11 @@
+*.bak
+
 *.swp
 *.swo
+
 *.ova
 *.iso
+
 
 hosts.ini
 config.ps1

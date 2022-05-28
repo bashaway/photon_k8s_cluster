@@ -6,7 +6,7 @@ $ini_file = "$path_script/config.ps1"
 . "$ini_file"
 
 # set photon os image file
-$photon_image="${path_script}/photon-ova-4.0-ca7c9e9330.ova"
+$photon_image="${path_script}/photon.ova"
 if(!(Test-Path $photon_image)){
     echo ""
     echo "##################################"
@@ -14,7 +14,9 @@ if(!(Test-Path $photon_image)){
     echo "##################################"
     echo "Image Not Found , Please download PhotonOS from Github"
     echo "https://github.com/vmware/photon/wiki/Downloading-Photon-OS"
-    echo "curl -LO https://packages.vmware.com/photon/4.0/Rev1/ova/photon-ova-4.0-ca7c9e9330.ova"
+    echo ""
+    echo "curl -L https://packages.vmware.com/photon/4.0/Rev1/ova/photon-ova-4.0-ca7c9e9330.ova -o esxi_photon_deployer/photon.ova"
+    echo "curl -L https://packages.vmware.com/photon/4.0/Rev2/ova/photon-ova-4.0-c001795b80.ova -o esxi_photon_deployer/photon.ova"
     echo ""
     exit
 }

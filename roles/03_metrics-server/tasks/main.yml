@@ -29,7 +29,7 @@
 - pause: seconds=10
 
 - name: metrics server - wait for metrics-server pods
-  shell: kubectl wait -n kube-system pod -l k8s-app=metrics-server --for=condition=ready --timeout=60s
+  shell: kubectl wait -n kube-system pod -l k8s-app=metrics-server --for=condition=ready --timeout={{ kubectl_timeout }}
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
 

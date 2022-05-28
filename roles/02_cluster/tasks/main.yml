@@ -22,23 +22,10 @@
   - name: kubeadm init
     shell: kubeadm init --apiserver-advertise-address={{ ansible_default_ipv4.address }} --pod-network-cidr={{ pod_network_cidr }}  --skip-token-print
 
-  - pause: seconds=10
-
   - name: wait for control-plane pods
-    shell: kubectl wait -n kube-system pod  -l tier=control-plane --for=condition=ready --timeout=60s
+    shell: kubectl wait -n kube-system pod  -l tier=control-plane --for=condition=ready --timeout={{ kubectl_timeout }}
     environment:
       KUBECONFIG: /etc/kubernetes/admin.conf
-
-  - name: check if all pods are up, except coredns.
-    vars:
-      regex_run: '^Running(\nRunning)*$'
-    shell:  kubectl get pods -n kube-system --no-headers=true | grep -v ^coredns | awk '{print $3}'
-    environment:
-      KUBECONFIG: /etc/kubernetes/admin.conf
-    register: pods_status
-    until: pods_status.stdout is search(regex_run)
-    retries: 10
-    delay: 30
 
 
   - name: canal - deploy
@@ -46,38 +33,20 @@
     environment:
       KUBECONFIG: /etc/kubernetes/admin.conf
 
-  - pause: seconds=10
-
-  - name: canal - wait for canal pods
-    shell: kubectl wait -n kube-system pod  -l k8s-app=calico-kube-controllers --for=condition=ready --timeout=60s
-    environment:
-      KUBECONFIG: /etc/kubernetes/admin.conf
-
   - name: canal - wait for coredns pods
-    shell: kubectl wait -n kube-system pod  -l k8s-app=kube-dns --for=condition=ready --timeout=60s
+    shell: kubectl wait -n kube-system pod  -l k8s-app=kube-dns --for=condition=ready --timeout={{ kubectl_timeout }}
     environment:
       KUBECONFIG: /etc/kubernetes/admin.conf
-
-  - name: canal - check if all pods are up.
-    vars:
-      regex_run: '^Running(\nRunning)*$'
-    shell:  kubectl get pods -n kube-system --no-headers=true | awk '{print $3}'
-    environment:
-      KUBECONFIG: /etc/kubernetes/admin.conf
-    register: pods_status
-    until: pods_status.stdout is search(regex_run)
-    retries: 10
-    delay: 30
-
 
   - shell: kubeadm token create --print-join-command
     register: k8s_join_token
   - set_fact:
       token: "{{ k8s_join_token.stdout }}"
 
+
   when:
-    -  hostvars[groups.master[0]].token  == ""
-    - ('master' in group_names)
+  -  hostvars[groups.master[0]].token  == ""
+  - ('master' in group_names)
 
 
 # join worker nodes
@@ -87,28 +56,10 @@
   - ('master' not in group_names)
 
 
-- block:
-
-  - name: join - wait for kube-proxy pods
-    shell: kubectl wait -n kube-system pod -l k8s-app=kube-proxy --for=condition=ready --timeout=60s
-    environment:
-      KUBECONFIG: /etc/kubernetes/admin.conf
-
-  - name: join - wait for canal pods
-    shell: kubectl wait -n kube-system pod -l k8s-app=canal --for=condition=ready --timeout=60s
-    environment:
-      KUBECONFIG: /etc/kubernetes/admin.conf
-
-  - name: check if all pods are up.
-    vars:
-      regex_run: '^Running(\nRunning)*$'
-    shell:  kubectl get pods -n kube-system --no-headers=true | awk '{print $3}'
-    environment:
-      KUBECONFIG: /etc/kubernetes/admin.conf
-    register: pods_status
-    until: pods_status.stdout is search(regex_run)
-    retries: 10
-    delay: 30
-
+# pod activity check
+- name: check if all pods are up.
+  shell:  kubectl wait -n kube-system pod  --all  --for=condition=ready --timeout={{ kubectl_timeout }}
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
   when:
-    - ('master' in group_names)
+  - ('master' in group_names)

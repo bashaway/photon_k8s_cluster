@@ -93,7 +93,11 @@ https://github.com/vmware/photon/wiki/Downloading-Photon-OS
 Download Photon OS ova file ( Photon OS 4.0 Rev1 )
 
 ```console
-curl -L https://packages.vmware.com/photon/4.0/Rev1/ova/photon-ova-4.0-ca7c9e9330.ova -o esxi_photon_deployer/photon-ova-4.0-ca7c9e9330.ova
+# v4.0 Rev2
+curl -L https://packages.vmware.com/photon/4.0/Rev2/ova/photon-ova-4.0-c001795b80.ova -o esxi_photon_deployer/photon.ova
+
+# v4.0 Rev1
+curl -L https://packages.vmware.com/photon/4.0/Rev1/ova/photon-ova-4.0-ca7c9e9330.ova -o esxi_photon_deployer/photon.ova
 ```
 
 ## Deploy kubernetes cluster

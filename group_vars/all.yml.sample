@@ -1,22 +1,33 @@
 # set ingress parameters
-ingress_address: "192.168.0.181-192.168.0.199"
-domain_name: "example.com"
+ingress_address: 192.168.0.181-192.168.0.199
+domain_name: example.com
 
 
-##### if needed #####
+# if needed
+
+# kubectl timeout
+kubectl_timeout: 300s
 
 # set network parameters
 pod_network_cidr: 10.244.0.0/16
 
 # set resource directory name ( playbook temporary files )
-dir_resources: "./photon_k8s"
+dir_resources: ./photon_k8s
 
 # https://github.com/containernetworking/plugins/releases/
-VERSION_CNI: "v1.0.1"
+VERSION_CNI: v1.1.1
 
 # https://github.com/kubernetes-sigs/cri-tools/releases
-VERSION_CRICTL: "v1.22.0"
+VERSION_CRICTL: v1.24.2
 
 # https://dl.k8s.io/release/stable.txt
-VERSION_K8S: "v1.22.2"
+VERSION_K8S: v1.24.1
 
+# https://github.com/kubernetes/dashboard#install
+VERSION_DASHBOARD: v2.5.1
+
+# https://github.com/metallb/metallb/releases
+VERSION_METALLB: v0.12.1
+
+# https://kubernetes.github.io/ingress-nginx/deploy/#quick-start
+VERSION_INGRESS: v1.2.0

@@ -6,7 +6,7 @@
   shell: tdnf check-update ; tdnf upgrade -y 
 
 - name: install packages
-  shell: tdnf install -y tar conntrack ebtables ethtool socat
+  shell: tdnf install -y tar conntrack ebtables ethtool socat apparmor-parser
 
 - name: copy files
   copy: src={{ item.src }} dest={{ item.dest }}
@@ -61,13 +61,12 @@
 
 #######################################################
 # for Photon OS 4.0 GA only (except Rev1
+# https://github.com/vmware/photon/issues/1127
 #######################################################
-#https://github.com/vmware/photon/issues/1127
 #- name: remove systemd-udev
 #  shell: rpm --noscripts -e systemd-udev minimal
 #- name: install systemd-udev
 #  shell: tdnf install -y systemd-udev minimal
-#https://github.com/vmware/photon/issues/1127
 #######################################################
 
 
@@ -124,6 +123,12 @@
     shell: curl -sSL https://raw.githubusercontent.com/kubernetes/release/master/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf | sed s:/usr/bin:/usr/local/bin:g > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
   when: check.stat.exists == False
+
+
+
+#https://github.com/containerd/containerd/issues/4581
+- name: kubelet issue
+  shell: rm -rf /etc/containerd/config.toml && systemctl restart containerd
 
 
 # kubelet service
